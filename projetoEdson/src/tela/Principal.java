@@ -8,9 +8,12 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -36,20 +39,22 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import tela.enumerador.SituacaoInicio;
-
 import classes.AcaoAldeao;
 import classes.Civilizacao;
 import classes.Jogador;
 import classes.Utils;
+import tela.Principal;
+import servidor.Cliente;
+import servidor.LevantarServidor;
 
-import java.awt.Toolkit;
+import tela.enumerador.SituacaoInicio;
 
 public class Principal extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JTabbedPane tpJogo;
 	//*** Inicio *************************************************************
 	private SituacaoInicio situacaoInicio;
+	//private JLabel lblJogador;
 	private JPanel pnJogador;
 	private JTextField tfNome;
 	private JPanel pnCivilizacao;
@@ -74,7 +79,6 @@ public class Principal extends JFrame {
 	private JTextField tfMensagem;
 	private JButton btnEnviar;
 	// *** Vila **************************************************************
-	private JLabel lblJogador;
 	private JPanel pnTP_Vila;
 	private JTable tblAldeoes;
 	private DefaultTableModel tmAldeoes;
@@ -99,21 +103,24 @@ public class Principal extends JFrame {
 	private JPanel pnMaravilha;
 	private JLabel lblMaravilha;
 	private JProgressBar pbMaravilha;
-	private Jogador jogador;
 	
+	public Civilizacao civilizacaoJ;
+	public Jogador jogador;
+	
+	public LevantarServidor server = new LevantarServidor();
+	public Cliente cliente;
 	
 //	public static void main(String[] args) { //main do Edson
-//		Principal principal = new Principal();
-//		principal.setVisible(true);
-//	}
-	
+//	Principal principal = new Principal();
+//	principal.setVisible(true);
+//}
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			Principal window = new Principal();
 			window.setVisible(true);
 		});
 	}
-	
 
 	public Principal() {
 		setIconImage(Toolkit.getDefaultToolkit().getImage(Principal.class.getResource("/tela/img/icone.png")));
@@ -134,7 +141,7 @@ public class Principal extends JFrame {
 
 	@SuppressWarnings("serial")
 	private void initialize() {
-		this.setTitle("Jogo de Estratégia em Tempo Real");
+		this.setTitle("Jogo de Estrat�gia em Tempo Real");
 		this.setResizable(false);
 		this.setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 		this.setBounds(100, 100, 886, 720);
@@ -162,7 +169,7 @@ public class Principal extends JFrame {
 				else if (v.contains("construindo"))
 					setBackground(Color.LIGHT_GRAY);
 				else
-					setBackground(Color.ORANGE);
+					setBackground(Color.LIGHT_GRAY);
 				super.setValue(valor);
 			}
 		};
@@ -175,9 +182,7 @@ public class Principal extends JFrame {
 
 		JPanel pnTP_Inicio = new JPanel();
 		pnTP_Inicio.setLayout(null);
-		this.tpJogo.addTab("Início", null, pnTP_Inicio, null);
-		
-		
+		this.tpJogo.addTab("In�cio", null, pnTP_Inicio, null);
 
 		//*** Inicio *********************************************************
 
@@ -186,16 +191,6 @@ public class Principal extends JFrame {
 		this.pnJogador.setBounds(10, 10, 300, 51);
 		this.pnJogador.setLayout(null);
 		pnTP_Inicio.add(this.pnJogador);
-		
-		lblJogador = new JLabel("Jogador");
-		lblJogador.setFont(new Font("Tahoma", Font.BOLD, 12));
-		pnJogador.add(lblJogador);
-		
-//		JPanel pnTP_Vila = new JPanel();
-//		pnTP_Vila.setLayout(null);
-//		tpJogo.addTab("Vila", null, pnTP_Vila, null);
-//		
-		
 
 		this.tfNome = new JTextField();
 		this.tfNome.setBounds(10, 17, 280, 20);
@@ -399,7 +394,7 @@ public class Principal extends JFrame {
 		pnFazenda.setBounds(290, 10, 270, 305);
 		this.pnTP_Vila.add(pnFazenda);
 
-		String[] colunasFazendas = {"N", "Aldeões"};
+		String[] colunasFazendas = {"N�", "Alde�es"};
 		this.tmFazendas = (new DefaultTableModel(null, colunasFazendas){
 			public boolean isCellEditable(int row, int column){
 				return false;
@@ -424,7 +419,7 @@ public class Principal extends JFrame {
 		pnMinaOuro.setBounds(290, 325, 270, 305);
 		this.pnTP_Vila.add(pnMinaOuro);
 
-		String[] colunasMinas = {"N", "Aldeões"};
+		String[] colunasMinas = {"N�", "Alde�es"};
 		this.tmMinasOuro = (new DefaultTableModel(null, colunasMinas){
 			public boolean isCellEditable(int row, int column){
 				return false;
@@ -474,15 +469,15 @@ public class Principal extends JFrame {
 		this.tfPrefeitura.setEditable(false);
 		pnPrefeitura.add(tfPrefeitura);
 
-		JButton btnPrefeituraCriarAldeao = new JButton("Criar aldeão");
+		JButton btnPrefeituraCriarAldeao = new JButton("Criar alde�o");
 		btnPrefeituraCriarAldeao.setBounds(10, 90, 128, 21);
 		pnPrefeitura.add(btnPrefeituraCriarAldeao);
 
 		JComboBox<String> cbPrefeituraEvolucoes = new JComboBox<String>();
 		cbPrefeituraEvolucoes.setBounds(10, 115, 248, 21);
-		cbPrefeituraEvolucoes.addItem("Evolução  de alde�o");
-		cbPrefeituraEvolucoes.addItem("Evolução  de fazenda");
-		cbPrefeituraEvolucoes.addItem("Evolução  de mina de ouro");
+		cbPrefeituraEvolucoes.addItem("Evolu��o de alde�o");
+		cbPrefeituraEvolucoes.addItem("Evolu��o de fazenda");
+		cbPrefeituraEvolucoes.addItem("Evolu��o de mina de ouro");
 		pnPrefeitura.add(cbPrefeituraEvolucoes);
 
 		JButton btnPrefeituraEvoluir = new JButton("Evoluir");
@@ -517,11 +512,11 @@ public class Principal extends JFrame {
 		this.cbTEmploEvolucoes = new JComboBox<String>();
 		this.cbTEmploEvolucoes.setBounds(10, 90, 248, 21);
 		this.cbTEmploEvolucoes.addItem("Nuvem de gafanhotos");
-		this.cbTEmploEvolucoes.addItem("Morte dos primogênitos");
+		this.cbTEmploEvolucoes.addItem("Morte dos primog�nitos");
 		this.cbTEmploEvolucoes.addItem("Chuva de pedras");
-		this.cbTEmploEvolucoes.addItem("Proteção contra nuvem de gafanhotos");
-		this.cbTEmploEvolucoes.addItem("Proteção contra morte dos primog�nitos");
-		this.cbTEmploEvolucoes.addItem("Proteção contra chuva de pedras");
+		this.cbTEmploEvolucoes.addItem("Prote��o contra nuvem de gafanhotos");
+		this.cbTEmploEvolucoes.addItem("Prote��o contra morte dos primog�nitos");
+		this.cbTEmploEvolucoes.addItem("Prote��o contra chuva de pedras");
 		this.cbTEmploEvolucoes.setEnabled(false);
 		this.pnTemplo.add(this.cbTEmploEvolucoes);
 
@@ -540,7 +535,7 @@ public class Principal extends JFrame {
 		this.cbTemploInimigo.setBounds(10, 165, 248, 21);
 		this.pnTemplo.add(this.cbTemploInimigo);
 
-		this.btnTemploLancar = new JButton("Lançar");
+		this.btnTemploLancar = new JButton("Lan�ar");
 		this.btnTemploLancar.setBounds(131, 190, 128, 21);
 		this.btnTemploLancar.setEnabled(false);
 		this.pnTemplo.add(this.btnTemploLancar);
@@ -566,11 +561,8 @@ public class Principal extends JFrame {
 		this.pbMaravilha.setEnabled(false);
 		this.pnMaravilha.add(pbMaravilha);
 
-		tpJogo.setSelectedIndex(1);
-		
 		this.situacaoInicio = SituacaoInicio.INICIAL_CRIAR;
 		this.habilitarInicio();
-		
 
 		//*** Eventos ********************************************************
 		//*** Inicio *********************************************************
@@ -627,13 +619,13 @@ public class Principal extends JFrame {
 
 		this.tfMensagem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				comandoEnviarMensagem(tfMensagem.getText());
+				comandoEnviarMensagem(tfMensagem.getText(),cliente);
 			}
 		});
 
 		this.btnEnviar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				comandoEnviarMensagem(tfMensagem.getText());
+				comandoEnviarMensagem(tfMensagem.getText(),cliente);
 			}
 		});
 
@@ -700,25 +692,31 @@ public class Principal extends JFrame {
 		});
 
 	}
+	
+	public void iniciar() {
 
-	//************************************************************************
-	//*** Testar - Depois pode apagar ****************************************
-	//************************************************************************
-	public void testar(Jogador jogador) {
-		this.habilitarMaravilha();
+		this.mostrarComida(jogador.getCivilizacao().getVila().getComida());
+		this.mostrarOuro(jogador.getCivilizacao().getVila().getOuro());
+		this.mostrarOferendaFe(jogador.getCivilizacao().getVila().getOferendaFe());
+		this.mostrarPrefeitura("", Color.LIGHT_GRAY);
 		
-//		List<String> evolucoes = new ArrayList<String>();
-//		evolucoes.add("NUVEM_GAFANHOTOS");
-//		evolucoes.add("MORTE_PRIMOGENITOS");
-//		evolucoes.add("CHUVA_PEDRAS"); 
-//		this.mostrarAtaques(evolucoes);
-//		this.mostrarTemplo("ffff", Color.MAGENTA);
+		List<String> evolucoes = new ArrayList<String>();
+		evolucoes.add("NUVEM_GAFANHOTOS");
+		evolucoes.add("MORTE_PRIMOGENITOS");
+		evolucoes.add("CHUVA_PEDRAS"); 
+		this.mostrarAtaques(evolucoes);
+		this.mostrarTemplo("", Color.LIGHT_GRAY);
+
 	}
-	public void testarInicio() {
-		this.adicionarJogador("Jose", "Brasileiro", "100.200.300.400", "vivo");
-		this.mostrarSituacaoJogador(1, "morto");
-		this.adicionarMensagem("oi");
-		this.adicionarMensagem("tudo bem?");
+	
+	public void teste() {
+		//this.adicionarJogador("Jose", "Brasileiro", "100.200.300.400", "vivo");  
+//Numero 1 representa a quantidade jogadores
+		//	    this.mostrarSituacaoJogador(1, "morto");
+//		this.adicionarMensagem("oi");
+//		this.adicionarMensagem("tudo bem?");
+		
+		
 	}
 	//************************************************************************
 	//************************************************************************
@@ -915,7 +913,11 @@ public class Principal extends JFrame {
 		this.btnTemploLancar.setEnabled(true);
 		this.cbTemploLancamentos.removeAllItems();
 		for (String evolucao : evolucoes) {
-			this.cbTemploLancamentos.addItem(evolucao);
+			switch (evolucao) {
+			case "NUVEM_GAFANHOTOS":	this.cbTemploLancamentos.addItem("Nuvem de gafanhotos");	break;
+			case "MORTE_PRIMOGENITOS":	this.cbTemploLancamentos.addItem("Morte dos primog�nitos");	break;
+			case "CHUVA_PEDRAS": 		this.cbTemploLancamentos.addItem("Chuva de pedras");
+			}
 		}
 	}
 	
@@ -937,17 +939,35 @@ public class Principal extends JFrame {
 
 	private void comandoCriarJogo(String nome, String civilizacao) {
 		boolean retorno;
+		String ipLocal = null;
+		
 		if (nome.length() < 2) {
 			mostrarMensagemErro("Erro", "Informe um nome para o jogador");
 			return;
 		}
-		retorno = true; // retorno da cria��o do jogo
+		retorno = true; //criaçao do jogo
 		if (retorno) {
-			this.adicionarJogador(nome, civilizacao, "100.200.300.400", "aguardando jogadores...");
+			try {
+				ipLocal = InetAddress.getByName("localhost").getHostAddress();
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+			this.adicionarJogador(nome, civilizacao, ipLocal, "aguardando jogadores...");
 			this.situacaoInicio = SituacaoInicio.CRIAR_CRIADO;
 			this.habilitarInicio();
+			//levanta o serve
+			server.start();
+			cliente = new Cliente(this);
+			cliente.clienteTCP.conectar(ipLocal, nome);
+
+			if(cliente.clienteTCP.conectar(ipLocal, nome)) {
+				String mensagem = "Jogador: "+nome+" IP: "+ipLocal+" conectado";
+				this.comandoEnviarMensagem(mensagem, cliente);
+			}
 		}
 	}
+	
+	
 
 	private void comandoDestruirJogo() {
 		this.limparJogadores();
@@ -957,13 +977,17 @@ public class Principal extends JFrame {
 	}
 
 	private void comandoIniciarJogo() {
-		boolean retorno = true; // retorno da inicia��o do jogo
+		boolean retorno = true; // inicializacao do jogo
 		if (retorno) {
 			this.situacaoInicio = SituacaoInicio.CRIAR_INICIADO;
 			this.habilitarInicio();
 			this.tpJogo.setSelectedIndex(1);
 			this.limparInimigos();
 			this.adicionarInimigo("Inimigo-Persa");
+			
+			civilizacaoJ = new Civilizacao("",this);
+			jogador = new Jogador ("", 1, civilizacaoJ);
+			this.iniciar();
 		}
 	}
 
@@ -976,6 +1000,10 @@ public class Principal extends JFrame {
 
 	private void comandoConectar(String nome, String civilizacao, String ipServidor) {
 		boolean retorno;
+		boolean ipConectado = false;
+		
+		ipConectado = false;
+		
 		if (nome.length() < 2) {
 			mostrarMensagemErro("Erro", "Informe um nome para o jogador");
 			return;
@@ -984,12 +1012,36 @@ public class Principal extends JFrame {
 			mostrarMensagemErro("Erro", "Informe o IP do computador que criou o jogo");
 			return;
 		}
-		retorno = true; // retorno da conex�o
-		if (retorno) {
+		retorno = true; // retorno da conexao
+		
+		if(ipServidor.equals("127.0.0.1")) {
+			ipConectado = true;
+		}else {
+			this.comandoEnviarMensagem("Erro ao conectar");
+		}
+		
+		if (retorno && ipConectado == true) {
 			this.adicionarJogador(nome, civilizacao, ipServidor, "aguardando iniciar...");
 			this.situacaoInicio = SituacaoInicio.CONECTADO;
+			
 			this.habilitarInicio();
 			this.tpJogo.setSelectedIndex(1);
+		
+			civilizacaoJ = new Civilizacao(civilizacao,this);
+			jogador = new Jogador (nome, 1, civilizacaoJ);
+			this.habilitarMaravilha();
+		
+			
+			
+			//se conectar ao cliente 
+			cliente = new Cliente(this);
+			cliente.clienteTCP.conectar(ipServidor, nome);
+			
+			if(cliente.clienteTCP.conectar(ipServidor, nome)) {
+				String mensagem = "Jogador: "+nome+" IP: "+ipServidor+" conectado";
+				this.comandoEnviarMensagem(mensagem, cliente);
+			}
+			
 		}
 	}
 
@@ -1000,10 +1052,24 @@ public class Principal extends JFrame {
 		this.habilitarInicio();
 	}
 
-	private void comandoEnviarMensagem(String mensagem) {
-		System.out.println("Mensagem escrita: "+ mensagem);
+	public void enviarMsgServidor(String mensagem) {
+		//O cliente nao pdoe ser null
+		cliente.clienteTCP.enviarMensagem(mensagem);
+	}
+	
+	public void comandoEnviarMensagem(String mensagem, Cliente cliente) {
+		System.out.println("Mensagem escrita para o servidor: "+ mensagem);
+		cliente.clienteTCP.enviarMensagem(mensagem);
+		this.adicionarMensagem(mensagem);
 		this.tfMensagem.setText("");
 	}
+	
+	public void comandoEnviarMensagem(String mensagem) {
+		System.out.println("Mensagem escrita: "+ mensagem);
+		this.adicionarMensagem(mensagem);
+		this.tfMensagem.setText("");
+	}
+	
 	
 	//*** Vila ***************************************************************
 
@@ -1074,5 +1140,5 @@ public class Principal extends JFrame {
 //	public void comandoTemploLancar() {
 //		System.out.println("comandoTemploLancar();");
 //	}
-
 }
+	

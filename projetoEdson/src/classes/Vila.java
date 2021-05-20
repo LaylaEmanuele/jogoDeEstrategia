@@ -1,9 +1,11 @@
 package classes;
 
 import java.util.ArrayList;
-import java.awt.Color;
+
 
 import tela.Principal;
+
+import java.awt.Color;
 
 public class Vila {
 	private ArrayList<Aldeao> aldeoes = new ArrayList<Aldeao>();
