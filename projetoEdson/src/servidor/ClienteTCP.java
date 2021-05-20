@@ -35,6 +35,8 @@ public class ClienteTCP extends Thread {
 			entrada = new ObjectInputStream(this.conexao.getInputStream());
 			while (this.escutando) {
 				mensagem = (String) entrada.readObject();
+				
+				System.out.println("ADICIONAR MSG: "+mensagem);
 				this.cliente.adicionarMensagem(mensagem);
 			}
 			entrada.close();
@@ -74,5 +76,4 @@ public class ClienteTCP extends Thread {
 			e.printStackTrace();
 		}
 	}
-
 }

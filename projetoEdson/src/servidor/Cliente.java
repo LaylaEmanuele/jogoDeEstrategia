@@ -18,8 +18,6 @@ public class Cliente extends Thread{
 	//J� adicionado com sucesso
 	public void adicionarMensagem(String mensagem) {
 		this.tela.adicionarMensagem(mensagem);
-		this.tela.comandoEnviarMensagem(mensagem);
-		//System.out.println("ADICIONAR MSG: "+mensagem);
 	}
 
 //	private void conectarDesconectar() {

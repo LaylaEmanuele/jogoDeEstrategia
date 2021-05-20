@@ -38,13 +38,13 @@ public class ServidorTCP extends Thread {
 				
 				
 				while (!(mensagem = (String) entrada.readObject()).equals("CMD|DESCONECTAR")) {
-				
-					System.out.println("dentro --> ["+ mensagem +"]");
 					synchronized (this.saidas) {
 						String msg = super.getName() +"("+ formato.format(new Date()) +"): "+ mensagem;
 						System.out.println("msg --> ["+ msg +"]");
-						for (ObjectOutputStream saida2 : this.saidas)
+						for (ObjectOutputStream saida2 : this.saidas) {
 							saida2.writeObject(msg);
+							System.out.println("msg 2 --> ["+ msg +"]");
+						}
 					}
 				}
 				System.out.println("fora --> ["+ mensagem +"]");
